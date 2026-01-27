@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Experimento MTS - Unifap</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Experimento: Análise Experimental do Comportamento</h1>
+        <h2 id="fase-display" class="hidden">Fase Experimental</h2>
+      </header>
+
+      <div id="instrucoes">
+        <h3>Instruções para o Aplicador</h3>
+        <p>
+          1. Certifique-se de que o participante leu e compreendeu a Fase 1
+          (Instrução Verbal).
+        </p>
+        <p>
+          2. Digite o código do participante abaixo para iniciar o registro.
+        </p>
+
+        <input
+          type="text"
+          id="participante-id"
+          placeholder="Cód. Participante (ex: P01)"
+        />
+        <br /><br />
+        <button onclick="experimento.iniciar()" class="btn-start">
+          INICIAR FASE 2
+        </button>
+      </div>
+
+      <div id="area-experimento" class="hidden">
+        <div id="container-modelo">
+          <p class="legenda">Modelo (Toque aqui primeiro)</p>
+          <div id="area-modelo"></div>
+        </div>
+
+        <div id="feedback-area"></div>
+
+        <div id="container-escolhas" class="hidden">
+          <p class="legenda">Escolha uma opção:</p>
+          <div id="area-escolhas"></div>
+        </div>
+      </div>
+
+      <div id="fim-experimento" class="hidden">
+        <h2>Experimento Concluído</h2>
+        <p>
+          O critério de extinção foi atingido ou o experimento foi encerrado.
+        </p>
+        <button onclick="experimento.baixarCSV()" class="btn-save">
+          BAIXAR DADOS (.csv)
+        </button>
+        <br /><br />
+        <button onclick="location.reload()" class="btn-secondary">
+          Novo Participante
+        </button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
