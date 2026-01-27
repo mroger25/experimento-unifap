@@ -163,6 +163,65 @@ class ExperimentoMTS {
   encerrarExperimento() {
     document.getElementById("area-experimento").classList.add("hidden");
     document.getElementById("fim-experimento").classList.remove("hidden");
+
+    this.gerarRelatorioNaTela();
+  }
+
+  gerarRelatorioNaTela() {
+    const divRelatorio = document.getElementById("relatorio-resumo");
+
+    // Filtra dados por fase
+    const tentativasFase2 = this.dadosCompletos.filter((d) => d.fase === 2);
+    const tentativasFase3 = this.dadosCompletos.filter((d) => d.fase === 3);
+
+    // Calcula acertos
+    const acertosF2 = tentativasFase2.filter(
+      (d) => d.resultado === "ACERTO",
+    ).length;
+    const errosF2 = tentativasFase2.length - acertosF2;
+
+    const acertosF3 = tentativasFase3.filter(
+      (d) => d.resultado === "ACERTO",
+    ).length;
+    const errosF3 = tentativasFase3.length - acertosF3;
+
+    // Monta o HTML da tabela
+    divRelatorio.innerHTML = `
+            <table class="tabela-resumo">
+                <thead>
+                    <tr>
+                        <th>Fase</th>
+                        <th>Tentativas</th>
+                        <th>Acertos</th>
+                        <th>Erros</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>2 (Treino)</strong></td>
+                        <td>${tentativasFase2.length}</td>
+                        <td style="color:green">${acertosF2}</td>
+                        <td style="color:red">${errosF2}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>3 (Extinção)</strong></td>
+                        <td>${tentativasFase3.length}</td>
+                        <td style="color:green">${acertosF3}</td>
+                        <td style="color:red">${errosF3}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TOTAL</strong></td>
+                        <td><strong>${this.dadosCompletos.length}</strong></td>
+                        <td>${acertosF2 + acertosF3}</td>
+                        <td>${errosF2 + errosF3}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin-top:10px; font-size:12px; color:#666;">
+                *Fase 2 Critério: 9/10 acertos.<br>
+                *Fase 3 Critério: 9/10 erros (ou <= 1 acerto).
+            </p>
+        `;
   }
 
   baixarCSV() {

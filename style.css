@@ -134,3 +134,44 @@ input[type="text"] {
   border-right: 50px solid transparent;
   border-bottom: 100px solid #333;
 }
+
+/* Estilos do Relatório Final */
+.relatorio-container {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: left;
+  max-height: 300px;
+  overflow-y: auto; /* Permite rolar se for muito grande */
+}
+
+.tabela-resumo {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabela-resumo th,
+.tabela-resumo td {
+  border-bottom: 1px solid #eee;
+  padding: 8px;
+  text-align: center;
+}
+
+.tabela-resumo th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  color: #555;
+}
+
+.tabela-resumo tr:last-child td {
+  border-bottom: none;
+}
+
+.acoes-finais {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

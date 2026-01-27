@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
@@ -50,16 +50,18 @@
 
       <div id="fim-experimento" class="hidden">
         <h2>Experimento Concluído</h2>
-        <p>
-          O critério de extinção foi atingido ou o experimento foi encerrado.
-        </p>
-        <button onclick="experimento.baixarCSV()" class="btn-save">
-          BAIXAR DADOS (.csv)
-        </button>
-        <br /><br />
-        <button onclick="location.reload()" class="btn-secondary">
-          Novo Participante
-        </button>
+        <p>Confira abaixo o resumo do desempenho:</p>
+
+        <div id="relatorio-resumo" class="relatorio-container"></div>
+
+        <div class="acoes-finais">
+          <button onclick="experimento.baixarCSV()" class="btn-save">
+            BAIXAR DADOS COMPLETOS (.csv)
+          </button>
+          <button onclick="location.reload()" class="btn-secondary">
+            Novo Participante
+          </button>
+        </div>
       </div>
     </div>
 
