@@ -116,7 +116,7 @@ input[type="text"] {
   transform: scale(0.95);
 }
 
-/* Definição das formas (Usando CSS puro) */
+/* Definição das formas */
 .quadrado {
   background-color: #333;
 }
@@ -124,8 +124,6 @@ input[type="text"] {
   background-color: #333;
   border-radius: 50%;
 }
-
-/* Triângulo em CSS é um truque com bordas */
 .triangulo {
   width: 0;
   height: 0;
@@ -144,7 +142,7 @@ input[type="text"] {
   margin: 20px 0;
   text-align: left;
   max-height: 300px;
-  overflow-y: auto; /* Permite rolar se for muito grande */
+  overflow-y: auto;
 }
 
 .tabela-resumo {
@@ -174,4 +172,13 @@ input[type="text"] {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* Estado de Intervalo (ITI) */
+.iti-ativo #area-experimento > * {
+  visibility: hidden;
+}
+.iti-ativo .container {
+  opacity: 0;
+  transition: opacity 0.2s;
 }

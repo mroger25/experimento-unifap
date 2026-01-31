@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Experimento MTS - Unifap</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <div class="container">
@@ -53,6 +54,10 @@
         <p>Confira abaixo o resumo do desempenho:</p>
 
         <div id="relatorio-resumo" class="relatorio-container"></div>
+
+        <div class="grafico-container" style="margin-bottom: 20px">
+          <canvas id="meuGrafico"></canvas>
+        </div>
 
         <div class="acoes-finais">
           <button onclick="experimento.baixarCSV()" class="btn-save">

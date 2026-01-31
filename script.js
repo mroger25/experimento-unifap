@@ -108,7 +108,9 @@ class ExperimentoMTS {
     } else {
       // Fase 3: Extinção (Sem Feedback)
       // Apenas delay silencioso
-      setTimeout(() => this.checarFimDeBloco(), 1000);
+      setTimeout(() => {
+        this.iniciarITI();
+      }, 500);
     }
   }
 
@@ -118,8 +120,26 @@ class ExperimentoMTS {
 
     // Tempo de exposição do feedback
     setTimeout(() => {
-      this.checarFimDeBloco();
+      this.iniciarITI();
     }, 1500);
+  }
+
+  // A "Tela Branca"
+  iniciarITI() {
+    // Limpa visualmente o feedback anterior
+    this.elFeedback.innerText = "";
+    this.elAreaEscolhas.innerHTML = "";
+    this.elAreaModelo.innerHTML = "";
+    this.elContainerEscolhas.classList.add("hidden");
+
+    // Adiciona classe que esconde a interface (Tela Branca)
+    document.body.classList.add("iti-ativo");
+
+    // Espera 1.0 segundo (duração do ITI)
+    setTimeout(() => {
+      document.body.classList.remove("iti-ativo");
+      this.checarFimDeBloco(); // Só avança depois do intervalo
+    }, 1000);
   }
 
   checarFimDeBloco() {
@@ -152,8 +172,7 @@ class ExperimentoMTS {
       }
     } else if (this.fase === 3) {
       // Critério para encerrar Fase 3 (Extinção instalada)
-      // O PDF diz: "deixar de escolher a correta por pelo menos 9 de 10"
-      // Isso significa Acertos <= 1
+      // Acertos <= 1
       if (acertos <= 1) {
         this.encerrarExperimento();
       }
@@ -222,6 +241,89 @@ class ExperimentoMTS {
                 *Fase 3 Critério: 9/10 erros (ou <= 1 acerto).
             </p>
         `;
+    this.gerarGrafico();
+  }
+
+  gerarGrafico() {
+    const ctx = document.getElementById("meuGrafico").getContext("2d");
+
+    // 1. Processar dados para o Registro Cumulativo
+    const labels = []; // Número da tentativa (eixo X)
+    const dadosAcumulados = []; // Total de acertos até o momento (eixo Y)
+    const coresPonto = []; // Cor diferente para cada fase
+
+    let acertosTotal = 0;
+
+    this.dadosCompletos.forEach((dado, index) => {
+      labels.push(index + 1); // Tentativa 1, 2, 3...
+
+      if (dado.resultado === "ACERTO") {
+        acertosTotal++;
+      }
+      dadosAcumulados.push(acertosTotal);
+
+      // Define cor do ponto baseada na fase
+      if (dado.fase === 2) {
+        coresPonto.push("blue"); // Fase de Treino
+      } else {
+        coresPonto.push("orange"); // Fase de Extinção
+      }
+    });
+
+    // 2. Criar o Gráfico
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Acertos Acumulados",
+            data: dadosAcumulados,
+            borderColor: "#333",
+            borderWidth: 2,
+            pointBackgroundColor: coresPonto, // Pontos mudam de cor na fase
+            pointRadius: 4,
+            fill: false,
+            tension: 0.1, // Linha levemente reta (padrão Skinneriano)
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: "Curva de Aprendizagem Cumulada",
+          },
+          tooltip: {
+            callbacks: {
+              afterLabel: function (context) {
+                // Mostra a fase no tooltip ao passar o mouse
+                const index = context.dataIndex;
+                const fase =
+                  coresPonto[index] === "blue"
+                    ? "Fase 2 (Reforço)"
+                    : "Fase 3 (Extinção)";
+                return fase;
+              },
+            },
+          },
+          legend: {
+            display: false, // Esconde legenda padrão para limpar a tela
+          },
+        },
+        scales: {
+          x: {
+            title: { display: true, text: "Número da Tentativa" },
+          },
+          y: {
+            title: { display: true, text: "Acertos Acumulados" },
+            beginAtZero: true,
+            ticks: { stepSize: 1 }, // Garante números inteiros no eixo Y
+          },
+        },
+      },
+    });
   }
 
   baixarCSV() {
