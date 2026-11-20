@@ -1,57 +1,69 @@
 class ExperimentoMTS {
   constructor() {
-    // Configurações e Estado
-    this.fase = 2; // Começa na Fase 2 (Treino)
+    // Estado
+    this.fase = 2;
     this.formas = ["quadrado", "circulo", "triangulo"];
-    this.tentativaTotal = 0;
     this.tentativaNoBloco = 0;
-    this.historicoBloco = []; // Reseta a cada 10 tentativas
-    this.dadosCompletos = []; // Salva tudo para o CSV
+    this.blocoAtual = 1;
+    this.historicoBloco = [];
+    this.dadosCompletos = [];
     this.participanteID = "";
+    this.modeloAtual = null;
 
-    // Elementos do DOM
+    // Controle de Tempo (Latência)
+    this.tempoInicioEscolha = 0;
+
+    // Elementos DOM
+    this.elFase = document.getElementById("fase-display");
+    this.elBloco = document.getElementById("bloco-display");
+    this.elTentativa = document.getElementById("tentativa-display");
     this.elAreaModelo = document.getElementById("area-modelo");
     this.elAreaEscolhas = document.getElementById("area-escolhas");
     this.elContainerEscolhas = document.getElementById("container-escolhas");
     this.elFeedback = document.getElementById("feedback-area");
-    this.modeloAtual = null;
   }
 
-  iniciar() {
-    const idInput = document.getElementById("participante-id").value;
-    if (!idInput) {
-      alert("Por favor, insira um código para o participante.");
-      return;
-    }
+  // --- MÓDULO 1 e 2 ---
+  aceitarTermo() {
+    const idInput = document.getElementById("participante-id").value.trim();
+    if (!idInput) return alert("Por favor, insira o código do participante.");
+
     this.participanteID = idInput;
+    document.getElementById("etapa-etica").classList.add("hidden");
+    document.getElementById("etapa-instrucao").classList.remove("hidden");
+  }
 
-    document.getElementById("instrucoes").classList.add("hidden");
+  repetirInstrucao() {
+    alert(
+      "Repita a instrução verbal para o participante e pergunte novamente o que ele deve fazer.",
+    );
+  }
+
+  iniciarFase2() {
+    document.getElementById("etapa-instrucao").classList.add("hidden");
     document.getElementById("area-experimento").classList.remove("hidden");
-    document.getElementById("fase-display").classList.remove("hidden");
-
+    this.atualizarPainel();
     this.novaTentativa();
   }
 
+  // --- MÓDULO 3: FLUXO DA TENTATIVA ---
   novaTentativa() {
-    // Limpa estado visual
+    // Reseta visual
     this.elAreaEscolhas.innerHTML = "";
     this.elFeedback.innerText = "";
     this.elAreaModelo.innerHTML = "";
-    this.elContainerEscolhas.classList.add("hidden"); // Esconde escolhas até clicar no modelo
+    this.elContainerEscolhas.classList.add("hidden");
+    this.atualizarPainel();
 
-    // 1. Define o Modelo da vez (Aleatório)
+    // Define modelo aleatório
     this.modeloAtual =
       this.formas[Math.floor(Math.random() * this.formas.length)];
-
-    // 2. Renderiza o Modelo
     const divModelo = this.criarElementoForma(this.modeloAtual);
 
-    // O participante deve clicar no modelo para habilitar as escolhas (Resposta de observação)
+    // Passo 1: Apresentação do modelo (Resposta de Observação)
     divModelo.onclick = () => {
-      // Remove o click do modelo para não reativar
-      divModelo.onclick = null;
-      divModelo.style.cursor = "default";
-      divModelo.style.opacity = "0.7";
+      divModelo.onclick = null; // Evita duplo clique
+      divModelo.style.opacity = "0.5"; // Feedback visual de que foi tocado
       this.mostrarEscolhas();
     };
 
@@ -61,216 +73,169 @@ class ExperimentoMTS {
   mostrarEscolhas() {
     this.elContainerEscolhas.classList.remove("hidden");
 
-    // Gera array embaralhado das opções
+    // Passo 2: Disponibilização dos 3 estímulos (Randomização Espacial)
     const opcoes = this.embaralharArray([...this.formas]);
 
-    opcoes.forEach((forma) => {
+    // Salva a posição de cada estímulo para o log
+    this.posicoesAtuais = {
+      esquerda: opcoes[0],
+      centro: opcoes[1],
+      direita: opcoes[2],
+    };
+
+    // Marca o tempo exato em que as escolhas aparecem (para latência)
+    this.tempoInicioEscolha = performance.now();
+
+    opcoes.forEach((forma, index) => {
       const divOpcao = this.criarElementoForma(forma);
 
-      // Evento de escolha (Clique na comparação)
+      // Passo 3: Captura da resposta de escolha
       divOpcao.onclick = () => {
-        this.registrarResposta(forma);
+        const tempoReacao = Math.round(
+          performance.now() - this.tempoInicioEscolha,
+        );
+        this.registrarResposta(forma, tempoReacao);
       };
       this.elAreaEscolhas.appendChild(divOpcao);
     });
   }
 
-  registrarResposta(escolhaFeita) {
-    // Trava novos cliques
-    this.elAreaEscolhas.innerHTML = "";
-
+  registrarResposta(escolhaFeita, latencia) {
+    this.elAreaEscolhas.innerHTML = ""; // Trava novos cliques
     const acertou = escolhaFeita === this.modeloAtual;
     const timestamp = new Date().toLocaleTimeString();
 
-    // Atualiza contadores
-    this.tentativaTotal++;
+    // Contadores
     this.tentativaNoBloco++;
     this.historicoBloco.push(acertou);
 
-    // Salva dados para exportação
+    // Log Estruturado
     this.dadosCompletos.push({
       participante: this.participanteID,
       fase: this.fase,
-      tentativa_geral: this.tentativaTotal,
+      bloco: this.blocoAtual,
       tentativa_bloco: this.tentativaNoBloco,
       modelo: this.modeloAtual,
+      pos_esquerda: this.posicoesAtuais.esquerda,
+      pos_centro: this.posicoesAtuais.centro,
+      pos_direita: this.posicoesAtuais.direita,
       escolha: escolhaFeita,
       resultado: acertou ? "ACERTO" : "ERRO",
+      latencia_ms: latencia,
       hora: timestamp,
     });
 
-    // Lógica de Feedback (VI)
+    // MÓDULO 4 e 5: CONSEQUÊNCIAS E TRANSIÇÕES
     if (this.fase === 2) {
       // Fase 2: Com Feedback
       const msg = acertou ? "ACERTOU!" : "ERROU!";
       const cor = acertou ? "green" : "red";
       this.mostrarFeedback(msg, cor);
     } else {
-      // Fase 3: Extinção (Sem Feedback)
-      // Apenas delay silencioso
-      setTimeout(() => {
-        this.iniciarITI();
-      }, 500);
+      // Fase 3: Extinção (Sem Feedback) - Passa direto para o ITI
+      this.iniciarITI();
     }
   }
 
   mostrarFeedback(texto, cor) {
     this.elFeedback.innerText = texto;
     this.elFeedback.style.color = cor;
-
     // Tempo de exposição do feedback
-    setTimeout(() => {
-      this.iniciarITI();
-    }, 1500);
+    setTimeout(() => this.iniciarITI(), 1500);
   }
 
-  // A "Tela Branca"
   iniciarITI() {
-    // Limpa visualmente o feedback anterior
+    // Limpa visual e ativa classe que esconde a interface (Tela Branca)
     this.elFeedback.innerText = "";
-    this.elAreaEscolhas.innerHTML = "";
-    this.elAreaModelo.innerHTML = "";
-    this.elContainerEscolhas.classList.add("hidden");
-
-    // Adiciona classe que esconde a interface (Tela Branca)
     document.body.classList.add("iti-ativo");
 
-    // Espera 1.0 segundo (duração do ITI)
+    // Intervalo entre tentativas
     setTimeout(() => {
       document.body.classList.remove("iti-ativo");
-      this.checarFimDeBloco(); // Só avança depois do intervalo
+      this.checarFimDeBloco();
     }, 1000);
   }
 
   checarFimDeBloco() {
-    // Verifica se completou bloco de 10 tentativas
     if (this.tentativaNoBloco >= 10) {
       this.avaliarCriterioMudanca();
-      // Reseta contador do bloco e histórico
+
+      // Se o experimento encerrou, não continua
+      if (
+        document
+          .getElementById("fim-experimento")
+          .classList.contains("hidden") === false
+      )
+        return;
+
+      // Prepara próximo bloco
+      this.blocoAtual++;
       this.tentativaNoBloco = 0;
       this.historicoBloco = [];
     }
-
-    // Se o experimento não acabou, vai para próxima
-    if (
-      document.getElementById("fim-experimento").classList.contains("hidden")
-    ) {
-      this.novaTentativa();
-    }
+    this.novaTentativa();
   }
 
   avaliarCriterioMudanca() {
-    const acertos = this.historicoBloco.filter((x) => x === true).length;
-    console.log(`Fim do bloco. Fase: ${this.fase}, Acertos: ${acertos}/10`);
+    const acertos = this.historicoBloco.filter(Boolean).length;
 
-    if (this.fase === 2) {
-      // Critério para sair da Fase 2: 9 ou 10 acertos
-      if (acertos >= 9) {
-        this.fase = 3;
-        console.log("--> Mudança para Fase 3 (Extinção)");
-        // Nota: Não avisamos o participante!
-      }
-    } else if (this.fase === 3) {
-      // Critério para encerrar Fase 3 (Extinção instalada)
-      // Acertos <= 1
-      if (acertos <= 1) {
-        this.encerrarExperimento();
-      }
+    if (this.fase === 2 && acertos >= 9) {
+      // Transição Cega para Fase 3
+      this.fase = 3;
+      console.log("Mudança silenciosa para Fase 3 (Extinção).");
+    } else if (this.fase === 3 && acertos <= 1) {
+      // Critério de encerramento da Fase 3
+      this.encerrarExperimento();
     }
   }
 
+  // --- MÓDULOS DE VISUALIZAÇÃO E EXPORTAÇÃO ---
   encerrarExperimento() {
     document.getElementById("area-experimento").classList.add("hidden");
     document.getElementById("fim-experimento").classList.remove("hidden");
-
     this.gerarRelatorioNaTela();
   }
 
+  atualizarPainel() {
+    this.elFase.innerText = `Fase: ${this.fase}`;
+    this.elBloco.innerText = `Bloco: ${this.blocoAtual}`;
+    this.elTentativa.innerText = `Tentativa: ${this.tentativaNoBloco + 1}/10`;
+  }
+
   gerarRelatorioNaTela() {
-    const divRelatorio = document.getElementById("relatorio-resumo");
+    const f2 = this.dadosCompletos.filter((d) => d.fase === 2);
+    const f3 = this.dadosCompletos.filter((d) => d.fase === 3);
 
-    // Filtra dados por fase
-    const tentativasFase2 = this.dadosCompletos.filter((d) => d.fase === 2);
-    const tentativasFase3 = this.dadosCompletos.filter((d) => d.fase === 3);
+    const acertosF2 = f2.filter((d) => d.resultado === "ACERTO").length;
+    const acertosF3 = f3.filter((d) => d.resultado === "ACERTO").length;
 
-    // Calcula acertos
-    const acertosF2 = tentativasFase2.filter(
-      (d) => d.resultado === "ACERTO",
-    ).length;
-    const errosF2 = tentativasFase2.length - acertosF2;
-
-    const acertosF3 = tentativasFase3.filter(
-      (d) => d.resultado === "ACERTO",
-    ).length;
-    const errosF3 = tentativasFase3.length - acertosF3;
-
-    // Monta o HTML da tabela
-    divRelatorio.innerHTML = `
-            <table class="tabela-resumo">
-                <thead>
-                    <tr>
-                        <th>Fase</th>
-                        <th>Tentativas</th>
-                        <th>Acertos</th>
-                        <th>Erros</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>2 (Treino)</strong></td>
-                        <td>${tentativasFase2.length}</td>
-                        <td style="color:green">${acertosF2}</td>
-                        <td style="color:red">${errosF2}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>3 (Extinção)</strong></td>
-                        <td>${tentativasFase3.length}</td>
-                        <td style="color:green">${acertosF3}</td>
-                        <td style="color:red">${errosF3}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>TOTAL</strong></td>
-                        <td><strong>${this.dadosCompletos.length}</strong></td>
-                        <td>${acertosF2 + acertosF3}</td>
-                        <td>${errosF2 + errosF3}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <p style="margin-top:10px; font-size:12px; color:#666;">
-                *Fase 2 Critério: 9/10 acertos.<br>
-                *Fase 3 Critério: 9/10 erros (ou <= 1 acerto).
-            </p>
-        `;
+    document.getElementById("relatorio-resumo").innerHTML = `
+      <table class="tabela-resumo">
+        <thead><tr><th>Fase</th><th>Tentativas</th><th>Acertos</th><th>Erros</th></tr></thead>
+        <tbody>
+          <tr><td><strong>2 (Treino)</strong></td><td>${f2.length}</td><td style="color:green">${acertosF2}</td><td style="color:red">${f2.length - acertosF2}</td></tr>
+          <tr><td><strong>3 (Extinção)</strong></td><td>${f3.length}</td><td style="color:green">${acertosF3}</td><td style="color:red">${f3.length - acertosF3}</td></tr>
+          <tr><td><strong>TOTAL</strong></td><td><strong>${this.dadosCompletos.length}</strong></td><td>${acertosF2 + acertosF3}</td><td>${f2.length - acertosF2 + (f3.length - acertosF3)}</td></tr>
+        </tbody>
+      </table>
+    `;
     this.gerarGrafico();
   }
 
   gerarGrafico() {
     const ctx = document.getElementById("meuGrafico").getContext("2d");
+    let acertosAcumulados = 0;
+    const labels = [];
+    const dados = [];
+    const cores = [];
 
-    // 1. Processar dados para o Registro Cumulativo
-    const labels = []; // Número da tentativa (eixo X)
-    const dadosAcumulados = []; // Total de acertos até o momento (eixo Y)
-    const coresPonto = []; // Cor diferente para cada fase
-
-    let acertosTotal = 0;
-
-    this.dadosCompletos.forEach((dado, index) => {
-      labels.push(index + 1); // Tentativa 1, 2, 3...
-
-      if (dado.resultado === "ACERTO") {
-        acertosTotal++;
-      }
-      dadosAcumulados.push(acertosTotal);
-
-      // Define cor do ponto baseada na fase
-      if (dado.fase === 2) {
-        coresPonto.push("blue"); // Fase de Treino
-      } else {
-        coresPonto.push("orange"); // Fase de Extinção
-      }
+    this.dadosCompletos.forEach((d, i) => {
+      labels.push(i + 1);
+      if (d.resultado === "ACERTO") acertosAcumulados++;
+      dados.push(acertosAcumulados);
+      cores.push(d.fase === 2 ? "blue" : "orange");
     });
 
-    // 2. Criar o Gráfico
     new Chart(ctx, {
       type: "line",
       data: {
@@ -278,48 +243,25 @@ class ExperimentoMTS {
         datasets: [
           {
             label: "Acertos Acumulados",
-            data: dadosAcumulados,
+            data: dados,
             borderColor: "#333",
             borderWidth: 2,
-            pointBackgroundColor: coresPonto, // Pontos mudam de cor na fase
+            pointBackgroundColor: cores,
             pointRadius: 4,
-            fill: false,
-            tension: 0.1, // Linha levemente reta (padrão Skinneriano)
+            tension: 0.1,
           },
         ],
       },
       options: {
         responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: "Curva de Aprendizagem Cumulada",
-          },
-          tooltip: {
-            callbacks: {
-              afterLabel: function (context) {
-                // Mostra a fase no tooltip ao passar o mouse
-                const index = context.dataIndex;
-                const fase =
-                  coresPonto[index] === "blue"
-                    ? "Fase 2 (Reforço)"
-                    : "Fase 3 (Extinção)";
-                return fase;
-              },
-            },
-          },
-          legend: {
-            display: false, // Esconde legenda padrão para limpar a tela
-          },
-        },
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
         scales: {
-          x: {
-            title: { display: true, text: "Número da Tentativa" },
-          },
+          x: { title: { display: true, text: "Tentativa Geral" } },
           y: {
-            title: { display: true, text: "Acertos Acumulados" },
+            title: { display: true, text: "Acertos" },
             beginAtZero: true,
-            ticks: { stepSize: 1 }, // Garante números inteiros no eixo Y
+            ticks: { stepSize: 1 },
           },
         },
       },
@@ -329,21 +271,21 @@ class ExperimentoMTS {
   baixarCSV() {
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent +=
-      "Participante,Fase,TentativaGeral,TentativaBloco,Modelo,Escolha,Resultado,Hora\n";
+      "Participante,Fase,Bloco,Tentativa_Bloco,Modelo,Pos_Esquerda,Pos_Centro,Pos_Direita,Escolha,Resultado,Latencia_ms,Hora\n";
 
-    this.dadosCompletos.forEach((row) => {
-      csvContent += `${row.participante},${row.fase},${row.tentativa_geral},${row.tentativa_bloco},${row.modelo},${row.escolha},${row.resultado},${row.hora}\n`;
+    this.dadosCompletos.forEach((r) => {
+      csvContent += `${r.participante},${r.fase},${r.bloco},${r.tentativa_bloco},${r.modelo},${r.pos_esquerda},${r.pos_centro},${r.pos_direita},${r.escolha},${r.resultado},${r.latencia_ms},${r.hora}\n`;
     });
 
-    const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", encodeURI(csvContent));
     link.setAttribute("download", `dados_${this.participanteID}.csv`);
     document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   }
 
-  // Utilitários
+  // --- Utilitários ---
   criarElementoForma(tipo) {
     const div = document.createElement("div");
     div.className = `forma ${tipo}`;
@@ -355,5 +297,5 @@ class ExperimentoMTS {
   }
 }
 
-// Inicializa a classe
+// Instancia o objeto globalmente para os eventos onclick do HTML
 const experimento = new ExperimentoMTS();

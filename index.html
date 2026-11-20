@@ -8,65 +8,89 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
-    <div class="container">
-      <header>
-        <h1>Experimento: Análise Experimental do Comportamento</h1>
-        <h2 id="fase-display" class="hidden">Fase Experimental</h2>
-      </header>
-
-      <div id="instrucoes">
-        <h3>Instruções para o Aplicador</h3>
+    <!-- MÓDULO 1: IDENTIFICAÇÃO E ÉTICA -->
+    <div id="etapa-etica" class="container">
+      <h1>Análise Experimental do Comportamento</h1>
+      <h2>Termo de Esclarecimento e Consentimento</h2>
+      <div class="texto-etico">
         <p>
-          1. Certifique-se de que o participante leu e compreendeu a Fase 1
-          (Instrução Verbal).
+          Este é um estudo pedagógico em formato de jogo. Você participará de
+          uma tarefa de escolha de formas geométricas.
         </p>
         <p>
-          2. Digite o código do participante abaixo para iniciar o registro.
+          Serão registradas gravações de vídeo, áudio e anotações em folha
+          específica. Todo o material será destruído após a escrita do
+          relatório.
         </p>
+        <p>Sua identidade será mantida em sigilo por meio de um código.</p>
+        <p>
+          Ao final, você poderá saber seu desempenho em termos de número de
+          acertos e erros.
+        </p>
+      </div>
+      <label>Digite o código do participante (ex: P01):</label>
+      <input type="text" id="participante-id" placeholder="Cód. Participante" />
+      <button onclick="experimento.aceitarTermo()" class="btn-start">
+        ACEITAR E CONTINUAR
+      </button>
+    </div>
 
-        <input
-          type="text"
-          id="participante-id"
-          placeholder="Cód. Participante (ex: P01)"
-        />
-        <br /><br />
-        <button onclick="experimento.iniciar()" class="btn-start">
-          INICIAR FASE 2
+    <!-- MÓDULO 2: FASE 1 - INSTRUÇÃO E CHECAGEM -->
+    <div id="etapa-instrucao" class="container hidden">
+      <h2>Fase 1: Instrução</h2>
+      <p class="instrucao-texto">
+        "Eu vou lhe apresentar um objeto, colocando aqui na mesa na sua frente.
+        Você deve tocar nele. Depois eu vou colocar na mesa três objetos. Você
+        deve escolher e tocar em um deles. Depois que você tocar, eu vou dizer
+        se você acertou ou errou. Você pode me dizer o que é para você fazer?"
+      </p>
+      <div id="area-checagem">
+        <p>O participante descreveu corretamente o que deve fazer?</p>
+        <button onclick="experimento.repetirInstrucao()" class="btn-secondary">
+          NÃO (Repetir Instrução)
+        </button>
+        <button onclick="experimento.iniciarFase2()" class="btn-start">
+          SIM (Iniciar Experimento)
         </button>
       </div>
+    </div>
 
-      <div id="area-experimento" class="hidden">
-        <div id="container-modelo">
-          <p class="legenda">Modelo (Toque aqui primeiro)</p>
-          <div id="area-modelo"></div>
-        </div>
-
-        <div id="feedback-area"></div>
-
-        <div id="container-escolhas" class="hidden">
-          <p class="legenda">Escolha uma opção:</p>
-          <div id="area-escolhas"></div>
-        </div>
+    <!-- ÁREA DO EXPERIMENTO -->
+    <div id="area-experimento" class="container hidden">
+      <div class="painel-experimentador">
+        <span id="fase-display">Fase: 2</span> |
+        <span id="bloco-display">Bloco: 1</span> |
+        <span id="tentativa-display">Tentativa: 1/10</span>
       </div>
 
-      <div id="fim-experimento" class="hidden">
-        <h2>Experimento Concluído</h2>
-        <p>Confira abaixo o resumo do desempenho:</p>
+      <div id="container-modelo">
+        <p class="legenda">Modelo (Toque aqui primeiro)</p>
+        <div id="area-modelo"></div>
+      </div>
 
-        <div id="relatorio-resumo" class="relatorio-container"></div>
+      <div id="feedback-area"></div>
 
-        <div class="grafico-container" style="margin-bottom: 20px">
-          <canvas id="meuGrafico"></canvas>
-        </div>
+      <div id="container-escolhas" class="hidden">
+        <p class="legenda">Escolha uma opção:</p>
+        <div id="area-escolhas"></div>
+      </div>
+    </div>
 
-        <div class="acoes-finais">
-          <button onclick="experimento.baixarCSV()" class="btn-save">
-            BAIXAR DADOS COMPLETOS (.csv)
-          </button>
-          <button onclick="location.reload()" class="btn-secondary">
-            Novo Participante
-          </button>
-        </div>
+    <!-- MÓDULO 6: TELA FINAL E EXPORTAÇÃO -->
+    <div id="fim-experimento" class="container hidden">
+      <h2>Experimento Concluído</h2>
+      <p>Confira abaixo o resumo do seu desempenho:</p>
+      <div id="relatorio-resumo" class="relatorio-container"></div>
+      <div class="grafico-container" style="margin-bottom: 20px; height: 300px">
+        <canvas id="meuGrafico"></canvas>
+      </div>
+      <div class="acoes-finais">
+        <button onclick="experimento.baixarCSV()" class="btn-save">
+          BAIXAR DADOS COMPLETOS (.csv)
+        </button>
+        <button onclick="location.reload()" class="btn-secondary">
+          Novo Participante
+        </button>
       </div>
     </div>
 

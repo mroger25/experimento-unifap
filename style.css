@@ -4,7 +4,6 @@
   margin: 0;
   padding: 0;
 }
-
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f4f4f9;
@@ -34,6 +33,7 @@ button {
   border: none;
   border-radius: 5px;
   transition: background 0.3s;
+  margin: 5px;
 }
 .btn-start {
   background-color: #28a745;
@@ -43,7 +43,6 @@ button {
 .btn-start:hover {
   background-color: #218838;
 }
-
 .btn-save {
   background-color: #007bff;
   color: white;
@@ -52,11 +51,9 @@ button {
 .btn-save:hover {
   background-color: #0069d9;
 }
-
 .btn-secondary {
   background-color: #6c757d;
   color: white;
-  margin-top: 10px;
 }
 
 /* Inputs */
@@ -67,6 +64,7 @@ input[type="text"] {
   border-radius: 5px;
   width: 250px;
   text-align: center;
+  margin: 15px 0;
 }
 
 /* Utilitários */
@@ -79,10 +77,33 @@ input[type="text"] {
   margin-bottom: 10px;
 }
 
-/* Áreas do Experimento */
-#area-experimento {
-  margin-top: 20px;
+/* Textos Éticos e Instrução */
+.texto-etico {
+  text-align: justify;
+  margin-bottom: 20px;
+  line-height: 1.5;
 }
+.instrucao-texto {
+  font-size: 18px;
+  font-style: italic;
+  background: #eef;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* Painel do Experimentador */
+.painel-experimentador {
+  background: #eee;
+  padding: 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #555;
+}
+
+/* Áreas do Experimento */
 #container-modelo {
   min-height: 150px;
   margin-bottom: 20px;
@@ -111,12 +132,9 @@ input[type="text"] {
   cursor: pointer;
   transition: transform 0.1s;
 }
-
 .forma:active {
   transform: scale(0.95);
 }
-
-/* Definição das formas */
 .quadrado {
   background-color: #333;
 }
@@ -133,7 +151,7 @@ input[type="text"] {
   border-bottom: 100px solid #333;
 }
 
-/* Estilos do Relatório Final */
+/* Estilos do Relatório */
 .relatorio-container {
   background: #fff;
   border: 1px solid #ddd;
@@ -144,41 +162,30 @@ input[type="text"] {
   max-height: 300px;
   overflow-y: auto;
 }
-
 .tabela-resumo {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
-
 .tabela-resumo th,
 .tabela-resumo td {
   border-bottom: 1px solid #eee;
   padding: 8px;
   text-align: center;
 }
-
 .tabela-resumo th {
   background-color: #f8f9fa;
   font-weight: bold;
   color: #555;
 }
-
-.tabela-resumo tr:last-child td {
-  border-bottom: none;
-}
-
 .acoes-finais {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* Estado de Intervalo (ITI) */
-.iti-ativo #area-experimento > * {
+/* ESTADO DE INTERVALO ENTRE TENTATIVAS (ITI) */
+/* Esconde os estímulos visuais para evitar respostas acidentais */
+.iti-ativo #area-experimento {
   visibility: hidden;
-}
-.iti-ativo .container {
-  opacity: 0;
-  transition: opacity 0.2s;
 }
