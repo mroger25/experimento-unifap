@@ -55,6 +55,17 @@ button {
   background-color: #6c757d;
   color: white;
 }
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+.btn-treino {
+  background-color: #ffc107;
+  color: #333;
+  font-weight: bold;
+}
+.btn-treino:hover {
+  background-color: #e0a800;
+}
 
 /* Inputs */
 input[type="text"] {
@@ -81,7 +92,7 @@ input[type="text"] {
 .texto-etico {
   text-align: justify;
   margin-bottom: 20px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 .instrucao-texto {
   font-size: 18px;
@@ -90,17 +101,6 @@ input[type="text"] {
   padding: 20px;
   border-radius: 8px;
   margin-bottom: 20px;
-}
-
-/* Painel do Experimentador */
-.painel-experimentador {
-  background: #eee;
-  padding: 10px;
-  border-radius: 5px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  font-size: 14px;
-  color: #555;
 }
 
 /* Áreas do Experimento */
@@ -185,7 +185,6 @@ input[type="text"] {
 }
 
 /* ESTADO DE INTERVALO ENTRE TENTATIVAS (ITI) */
-/* Esconde os estímulos visuais para evitar respostas acidentais */
 .iti-ativo #area-experimento {
   visibility: hidden;
 }

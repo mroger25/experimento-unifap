@@ -10,17 +10,30 @@ class ExperimentoMTS {
     this.participanteID = "";
     this.modeloAtual = null;
 
+    // Controle de Treino e Proteção de Dados
+    this.modoTreino = false;
+    this.tentativasTreino = 0;
+    this.experimentoIniciado = false;
+    this.dadosSalvos = false;
+
     // Controle de Tempo (Latência)
     this.tempoInicioEscolha = 0;
 
     // Elementos DOM
-    this.elFase = document.getElementById("fase-display");
-    this.elBloco = document.getElementById("bloco-display");
-    this.elTentativa = document.getElementById("tentativa-display");
     this.elAreaModelo = document.getElementById("area-modelo");
     this.elAreaEscolhas = document.getElementById("area-escolhas");
     this.elContainerEscolhas = document.getElementById("container-escolhas");
     this.elFeedback = document.getElementById("feedback-area");
+
+    // Prevenção de perda de dados ao fechar/recarregar a página
+    window.addEventListener("beforeunload", (e) => {
+      if (this.experimentoIniciado && !this.dadosSalvos && !this.modoTreino) {
+        e.preventDefault();
+        e.returnValue =
+          "Você tem dados não salvos. Tem certeza que deseja sair?";
+        return e.returnValue;
+      }
+    });
   }
 
   // --- MÓDULO 1 e 2 ---
@@ -39,10 +52,30 @@ class ExperimentoMTS {
     );
   }
 
-  iniciarFase2() {
+  // --- MÓDULO DE TREINO (NOVO) ---
+  iniciarTreino() {
+    this.modoTreino = true;
+    this.tentativasTreino = 0;
     document.getElementById("etapa-instrucao").classList.add("hidden");
     document.getElementById("area-experimento").classList.remove("hidden");
-    this.atualizarPainel();
+    alert(
+      "Iniciando Treino Prático (3 tentativas). O experimentador deve explicar que este treino é apenas para familiarização.",
+    );
+    this.novaTentativa();
+  }
+
+  finalizarTreino() {
+    this.modoTreino = false;
+    this.elFeedback.innerText = "";
+    document.getElementById("area-experimento").classList.add("hidden");
+    document.getElementById("etapa-instrucao").classList.remove("hidden");
+    alert("Treino concluído! Agora você pode iniciar o experimento oficial.");
+  }
+
+  iniciarFase2() {
+    this.experimentoIniciado = true;
+    document.getElementById("etapa-instrucao").classList.add("hidden");
+    document.getElementById("area-experimento").classList.remove("hidden");
     this.novaTentativa();
   }
 
@@ -53,7 +86,6 @@ class ExperimentoMTS {
     this.elFeedback.innerText = "";
     this.elAreaModelo.innerHTML = "";
     this.elContainerEscolhas.classList.add("hidden");
-    this.atualizarPainel();
 
     // Define modelo aleatório
     this.modeloAtual =
@@ -76,17 +108,15 @@ class ExperimentoMTS {
     // Passo 2: Disponibilização dos 3 estímulos (Randomização Espacial)
     const opcoes = this.embaralharArray([...this.formas]);
 
-    // Salva a posição de cada estímulo para o log
     this.posicoesAtuais = {
       esquerda: opcoes[0],
       centro: opcoes[1],
       direita: opcoes[2],
     };
 
-    // Marca o tempo exato em que as escolhas aparecem (para latência)
     this.tempoInicioEscolha = performance.now();
 
-    opcoes.forEach((forma, index) => {
+    opcoes.forEach((forma) => {
       const divOpcao = this.criarElementoForma(forma);
 
       // Passo 3: Captura da resposta de escolha
@@ -103,9 +133,19 @@ class ExperimentoMTS {
   registrarResposta(escolhaFeita, latencia) {
     this.elAreaEscolhas.innerHTML = ""; // Trava novos cliques
     const acertou = escolhaFeita === this.modeloAtual;
+
+    // Se estiver no modo treino, não salva dados nem avança blocos
+    if (this.modoTreino) {
+      this.tentativasTreino++;
+      const msg = acertou ? "ACERTOU!" : "ERROU!";
+      const cor = acertou ? "green" : "red";
+      this.mostrarFeedback(msg, cor, true); // true indica que é treino
+      return;
+    }
+
     const timestamp = new Date().toLocaleTimeString();
 
-    // Contadores
+    // Contadores Oficiais
     this.tentativaNoBloco++;
     this.historicoBloco.push(acertou);
 
@@ -127,32 +167,44 @@ class ExperimentoMTS {
 
     // MÓDULO 4 e 5: CONSEQUÊNCIAS E TRANSIÇÕES
     if (this.fase === 2) {
-      // Fase 2: Com Feedback
       const msg = acertou ? "ACERTOU!" : "ERROU!";
       const cor = acertou ? "green" : "red";
-      this.mostrarFeedback(msg, cor);
+      this.mostrarFeedback(msg, cor, false);
     } else {
-      // Fase 3: Extinção (Sem Feedback) - Passa direto para o ITI
+      // Fase 3: Extinção (Sem Feedback)
       this.iniciarITI();
     }
   }
 
-  mostrarFeedback(texto, cor) {
+  mostrarFeedback(texto, cor, isTreino) {
     this.elFeedback.innerText = texto;
     this.elFeedback.style.color = cor;
-    // Tempo de exposição do feedback
-    setTimeout(() => this.iniciarITI(), 1500);
+
+    setTimeout(() => {
+      if (isTreino) {
+        // Se for treino, passa para o ITI, mas depois checa se acabou
+        this.iniciarITI(true);
+      } else {
+        this.iniciarITI(false);
+      }
+    }, 1500);
   }
 
-  iniciarITI() {
-    // Limpa visual e ativa classe que esconde a interface (Tela Branca)
+  iniciarITI(isTreino = false) {
     this.elFeedback.innerText = "";
     document.body.classList.add("iti-ativo");
 
-    // Intervalo entre tentativas
     setTimeout(() => {
       document.body.classList.remove("iti-ativo");
-      this.checarFimDeBloco();
+      if (isTreino) {
+        if (this.tentativasTreino >= 3) {
+          this.finalizarTreino();
+        } else {
+          this.novaTentativa();
+        }
+      } else {
+        this.checarFimDeBloco();
+      }
     }, 1000);
   }
 
@@ -160,15 +212,11 @@ class ExperimentoMTS {
     if (this.tentativaNoBloco >= 10) {
       this.avaliarCriterioMudanca();
 
-      // Se o experimento encerrou, não continua
       if (
-        document
-          .getElementById("fim-experimento")
-          .classList.contains("hidden") === false
+        !document.getElementById("fim-experimento").classList.contains("hidden")
       )
         return;
 
-      // Prepara próximo bloco
       this.blocoAtual++;
       this.tentativaNoBloco = 0;
       this.historicoBloco = [];
@@ -180,26 +228,28 @@ class ExperimentoMTS {
     const acertos = this.historicoBloco.filter(Boolean).length;
 
     if (this.fase === 2 && acertos >= 9) {
-      // Transição Cega para Fase 3
-      this.fase = 3;
-      console.log("Mudança silenciosa para Fase 3 (Extinção).");
+      this.fase = 3; // Transição Cega
     } else if (this.fase === 3 && acertos <= 1) {
-      // Critério de encerramento da Fase 3
       this.encerrarExperimento();
     }
   }
 
   // --- MÓDULOS DE VISUALIZAÇÃO E EXPORTAÇÃO ---
   encerrarExperimento() {
+    this.experimentoIniciado = false; // Desativa o alerta de beforeunload
     document.getElementById("area-experimento").classList.add("hidden");
     document.getElementById("fim-experimento").classList.remove("hidden");
     this.gerarRelatorioNaTela();
   }
 
-  atualizarPainel() {
-    this.elFase.innerText = `Fase: ${this.fase}`;
-    this.elBloco.innerText = `Bloco: ${this.blocoAtual}`;
-    this.elTentativa.innerText = `Tentativa: ${this.tentativaNoBloco + 1}/10`;
+  confirmarNovoParticipante() {
+    if (!this.dadosSalvos && this.dadosCompletos.length > 0) {
+      const confirmacao = confirm(
+        "ATENÇÃO: Você ainda não baixou os dados deste participante. Se continuar, os dados serão perdidos permanentemente. Deseja realmente iniciar um novo participante?",
+      );
+      if (!confirmacao) return;
+    }
+    location.reload();
   }
 
   gerarRelatorioNaTela() {
@@ -283,6 +333,11 @@ class ExperimentoMTS {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    // Marca que os dados foram salvos, liberando o botão "Novo Participante" sem avisos
+    this.dadosSalvos = true;
+    document.getElementById("btn-salvar").innerText =
+      "DADOS SALVOS! BAIXAR NOVAMENTE (.csv)";
   }
 
   // --- Utilitários ---
@@ -297,5 +352,4 @@ class ExperimentoMTS {
   }
 }
 
-// Instancia o objeto globalmente para os eventos onclick do HTML
 const experimento = new ExperimentoMTS();

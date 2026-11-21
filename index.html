@@ -18,6 +18,18 @@
           uma tarefa de escolha de formas geométricas.
         </p>
         <p>
+          <strong>Importante:</strong> Este experimento <u>não</u> tem qualquer
+          fim de diagnóstico psicológico. Não se trata de um teste psicológico,
+          sendo exclusivamente uma atividade prática com fins pedagógicos para a
+          disciplina de Análise Experimental do Comportamento do curso de
+          Psicologia.
+        </p>
+        <p>
+          Sua participação é <strong>totalmente voluntária</strong>. Você tem a
+          liberdade de desistir a qualquer momento (antes, durante ou após a
+          participação), sem qualquer prejuízo ou penalidade.
+        </p>
+        <p>
           Serão registradas gravações de vídeo, áudio e anotações em folha
           específica. Todo o material será destruído após a escrita do
           relatório.
@@ -39,15 +51,19 @@
     <div id="etapa-instrucao" class="container hidden">
       <h2>Fase 1: Instrução</h2>
       <p class="instrucao-texto">
-        "Eu vou lhe apresentar um objeto, colocando aqui na mesa na sua frente.
-        Você deve tocar nele. Depois eu vou colocar na mesa três objetos. Você
-        deve escolher e tocar em um deles. Depois que você tocar, eu vou dizer
-        se você acertou ou errou. Você pode me dizer o que é para você fazer?"
+        "Eu vou lhe apresentar um objeto, mostrando aqui na tela. Você deve
+        clicar nele. Depois eu vou mostrar na tela três objetos. Você deve
+        escolher e clicar em um deles. Depois que você clicar, eu vou dizer se
+        você acertou ou errou. Você pode me dizer o que é para você fazer?"
       </p>
       <div id="area-checagem">
         <p>O participante descreveu corretamente o que deve fazer?</p>
         <button onclick="experimento.repetirInstrucao()" class="btn-secondary">
           NÃO (Repetir Instrução)
+        </button>
+        <!-- Novo botão de treino adicionado aqui -->
+        <button onclick="experimento.iniciarTreino()" class="btn-treino">
+          FAZER TREINO PRÁTICO (3 Tentativas)
         </button>
         <button onclick="experimento.iniciarFase2()" class="btn-start">
           SIM (Iniciar Experimento)
@@ -57,11 +73,7 @@
 
     <!-- ÁREA DO EXPERIMENTO -->
     <div id="area-experimento" class="container hidden">
-      <div class="painel-experimentador">
-        <span id="fase-display">Fase: 2</span> |
-        <span id="bloco-display">Bloco: 1</span> |
-        <span id="tentativa-display">Tentativa: 1/10</span>
-      </div>
+      <!-- Painel do experimentador OCULTADO para não influenciar o participante -->
 
       <div id="container-modelo">
         <p class="legenda">Modelo (Toque aqui primeiro)</p>
@@ -85,10 +97,17 @@
         <canvas id="meuGrafico"></canvas>
       </div>
       <div class="acoes-finais">
-        <button onclick="experimento.baixarCSV()" class="btn-save">
+        <button
+          onclick="experimento.baixarCSV()"
+          class="btn-save"
+          id="btn-salvar"
+        >
           BAIXAR DADOS COMPLETOS (.csv)
         </button>
-        <button onclick="location.reload()" class="btn-secondary">
+        <button
+          onclick="experimento.confirmarNovoParticipante()"
+          class="btn-secondary"
+        >
           Novo Participante
         </button>
       </div>
